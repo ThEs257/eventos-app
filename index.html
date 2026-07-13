@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bitácora de festejo</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF9F6;
+    --surface: #FFFFFF;
+    --text: #2B2620;
+    --text-2: #8A8378;
+    --accent: #8C3A46;
+    --accent-bg: #F1E2E3;
+    --border: #E8E3DB;
+    --success: #5B8A6B;
+    --gold: #D9A441;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .header {
+    background: var(--bg);
+    padding: 28px 22px 20px;
+  }
+
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .form {
+    padding: 20px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  label.field-label {
+    font-size: 12px;
+    color: var(--text-2);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  select, input[type="text"], input[type="date"], input[type="time"] {
+    width: 100%;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    padding: 0 12px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  select:focus, input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .de-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .de-row span {
+    font-size: 14px;
+    color: var(--text-2);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+
+  .de-row input {
+    flex: 1;
+  }
+
+  #nombreEvento {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    font-weight: 500;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--text-2);
+    margin: 6px 0 0;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .row > div { flex: 1; }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+
+  .checkbox-row input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+  }
+
+  #camposHoraDuracion {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  #camposHoraDuracion.oculto {
+    display: none;
+  }
+
+  button#btnCrear {
+    margin-top: 8px;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  button#btnCrear:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  #mensaje {
+    font-size: 13px;
+    text-align: center;
+    margin-top: -6px;
+    display: none;
+  }
+
+  #mensaje.error {
+    color: #B23B3B;
+    display: block;
+  }
+
+  #mensaje.info {
+    color: var(--text-2);
+    display: block;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: girar 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes girar {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1>¿Qué vamos a planear?</h1>
+    <p>Elegí el tipo de evento para empezar.</p>
+  </div>
+
+  <div class="form">
+
+    <div>
+      <label class="field-label" for="tipoEvento">Tipo de evento</label>
+      <select id="tipoEvento">
+        <option value="Cumpleaños">Cumpleaños</option>
+        <option value="Casamiento">Casamiento</option>
+        <option value="Cena">Cena</option>
+        <option value="Comunión">Comunión</option>
+        <option value="Bautismo">Bautismo</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="de-row">
+      <span>De</span>
+      <input type="text" id="deQuien" placeholder="Renato">
+    </div>
+
+    <div>
+      <label class="field-label" for="nombreEvento">Nombre del evento</label>
+      <input type="text" id="nombreEvento" placeholder="Se genera automáticamente">
+      <p class="hint">Podés editarlo, por ejemplo "1er Año Renato".</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <div>
+        <label class="field-label" for="fechaEvento">Fecha</label>
+        <input type="date" id="fechaEvento">
+      </div>
+      <div>
+        <label class="field-label" for="horaEvento">Hora</label>
+        <input type="time" id="horaEvento">
+      </div>
+    </div>
+
+    <div id="camposHoraDuracion">
+      <div>
+        <label class="field-label" for="duracionEvento">Duración</label>
+        <input type="text" id="duracionEvento" placeholder="Ej: 4 horas">
+      </div>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="definirMasAdelante">
+      Definir hora y duración más adelante
+    </label>
+
+    <p id="mensaje"></p>
+
+    <button id="btnCrear" onclick="crearEvento()">Crear evento</button>
+  </div>
+</div>
+
+<script>
+  // ⚠️ Reemplazar por la URL de tu Apps Script publicado como Web App (termina en /exec)
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby3HwnUO-ziu-iFujwaZbZR0ntJsPwYhmOGCv8KP19_cQrq_wZIJX4A2evrPXEEw6DJ4w/exec";
+
+  const tipoEventoEl = document.getElementById('tipoEvento');
+  const deQuienEl = document.getElementById('deQuien');
+  const nombreEventoEl = document.getElementById('nombreEvento');
+  const definirMasAdelanteEl = document.getElementById('definirMasAdelante');
+  const camposHoraDuracionEl = document.getElementById('camposHoraDuracion');
+  const horaEventoEl = document.getElementById('horaEvento');
+  const duracionEventoEl = document.getElementById('duracionEvento');
+  const btnCrearEl = document.getElementById('btnCrear');
+  const mensajeEl = document.getElementById('mensaje');
+
+  let nombreEditadoManualmente = false;
+
+  // Autogenera el nombre del evento en base a Tipo + "De" + quién,
+  // pero deja de autogenerar en cuanto el usuario edita el campo a mano.
+  function actualizarNombreSugerido() {
+    if (nombreEditadoManualmente) return;
+    const tipo = tipoEventoEl.value;
+    const de = deQuienEl.value.trim();
+    nombreEventoEl.value = de ? `${tipo} De ${de}` : tipo;
+  }
+
+  tipoEventoEl.addEventListener('change', actualizarNombreSugerido);
+  deQuienEl.addEventListener('input', actualizarNombreSugerido);
+  nombreEventoEl.addEventListener('input', () => { nombreEditadoManualmente = true; });
+
+  definirMasAdelanteEl.addEventListener('change', () => {
+    if (definirMasAdelanteEl.checked) {
+      camposHoraDuracionEl.classList.add('oculto');
+      horaEventoEl.value = '';
+      duracionEventoEl.value = '';
+    } else {
+      camposHoraDuracionEl.classList.remove('oculto');
+    }
+  });
+
+  function mostrarError(texto) {
+    mensajeEl.textContent = texto;
+    mensajeEl.className = 'error';
+  }
+
+  function mostrarInfo(texto) {
+    mensajeEl.textContent = texto;
+    mensajeEl.className = 'info';
+  }
+
+  function limpiarMensaje() {
+    mensajeEl.textContent = '';
+    mensajeEl.className = '';
+  }
+
+  async function crearEvento() {
+    limpiarMensaje();
+
+    const nombreEvento = nombreEventoEl.value.trim();
+    const fecha = document.getElementById('fechaEvento').value;
+
+    if (!nombreEvento) {
+      mostrarError('Falta el nombre del evento.');
+      return;
+    }
+    if (!fecha) {
+      mostrarError('Falta la fecha del evento.');
+      return;
+    }
+
+    const datos = {
+      accion: 'crearEvento',
+      tipoEvento: tipoEventoEl.value,
+      nombreEvento: nombreEvento,
+      fecha: fecha,
+      hora: definirMasAdelanteEl.checked ? '' : horaEventoEl.value,
+      duracion: definirMasAdelanteEl.checked ? '' : duracionEventoEl.value
+    };
+
+    btnCrearEl.disabled = true;
+    btnCrearEl.innerHTML = '<span class="spinner"></span>Creando evento...';
+
+    try {
+      const respuesta = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify(datos)
+      });
+      const resultado = await respuesta.json();
+
+      if (!resultado.ok) {
+        throw new Error(resultado.error || 'Error desconocido');
+      }
+
+      // Guarda el evento activo para que la pantalla principal lo lea
+      localStorage.setItem('eventoActivo', JSON.stringify({
+        idEvento: resultado.idEvento,
+        sheetId: resultado.sheetId,
+        sheetUrl: resultado.sheetUrl,
+        nombreEvento: nombreEvento,
+        tipoEvento: datos.tipoEvento,
+        fecha: fecha,
+        hora: datos.hora,
+        duracion: datos.duracion
+      }));
+
+      mostrarInfo('¡Evento creado! Redirigiendo...');
+      window.location.href = 'evento.html';
+
+    } catch (error) {
+      mostrarError('No se pudo crear el evento: ' + error.message);
+      btnCrearEl.disabled = false;
+      btnCrearEl.textContent = 'Crear evento';
+    }
+  }
+
+  // Inicializa la fecha mínima en hoy y sugiere el nombre por defecto
+  document.getElementById('fechaEvento').min = new Date().toISOString().split('T')[0];
+  actualizarNombreSugerido();
+</script>
+
+</body>
+</html>
