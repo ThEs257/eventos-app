@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bitácora de festejo</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF9F6;
+    --surface: #FFFFFF;
+    --text: #2B2620;
+    --text-2: #8A8378;
+    --accent: #8C3A46;
+    --accent-bg: #F1E2E3;
+    --border: #E8E3DB;
+    --success: #5B8A6B;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 90px;
+  }
+
+  .contenedor {
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .encabezado {
+    padding: 22px 22px 18px;
+  }
+
+  .encabezado .tipo {
+    font-size: 12px;
+    color: var(--text-2);
+    margin: 0 0 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .encabezado h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 2px;
+  }
+
+  .encabezado .fecha {
+    font-size: 13px;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .contador {
+    margin: 0 22px 20px;
+    background: var(--accent);
+    border-radius: 16px;
+    padding: 22px;
+    text-align: center;
+  }
+
+  .contador .numero {
+    font-family: 'Fraunces', serif;
+    font-size: 46px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .contador .etiqueta {
+    font-size: 13px;
+    color: #F1E2E3;
+    margin: 6px 0 0;
+    letter-spacing: 0.02em;
+  }
+
+  .tarjetas {
+    padding: 0 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tarjeta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .tarjeta .titulo {
+    font-size: 12px;
+    color: var(--text-2);
+    margin: 0 0 3px;
+  }
+
+  .tarjeta .valor {
+    font-size: 14px;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .tarjeta .valor.vacio {
+    color: var(--text-2);
+    font-weight: 400;
+  }
+
+  .tarjeta .flecha {
+    color: var(--text-2);
+    font-size: 16px;
+  }
+
+  .nav-inferior {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .nav-item {
+    font-size: 10px;
+    color: var(--text-2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+  }
+
+  .nav-item.activo {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .nav-item .icono {
+    font-size: 16px;
+  }
+
+  #cargando {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div id="cargando">Cargando evento...</div>
+
+<div class="contenedor" id="contenido" style="display:none;">
+
+  <div class="encabezado">
+    <p class="tipo" id="tipoEventoTexto"></p>
+    <h1 id="nombreEventoTexto"></h1>
+    <p class="fecha" id="fechaEventoTexto"></p>
+  </div>
+
+  <div class="contador">
+    <p class="numero" id="numeroContador">–</p>
+    <p class="etiqueta" id="etiquetaContador">días para el evento</p>
+  </div>
+
+  <div class="tarjetas">
+    <a class="tarjeta" href="lugar.html">
+      <div>
+        <p class="titulo">Lugar</p>
+        <p class="valor vacio">Sin definir</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" href="invitados.html">
+      <div>
+        <p class="titulo">Invitados</p>
+        <p class="valor vacio">Sin invitados cargados</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" href="tematica.html">
+      <div>
+        <p class="titulo">Temática</p>
+        <p class="valor vacio">Sin definir</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" href="comida.html">
+      <div>
+        <p class="titulo">Comida</p>
+        <p class="valor vacio">Sin definir</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" href="bebida.html">
+      <div>
+        <p class="titulo">Bebida</p>
+        <p class="valor vacio">Sin definir</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" href="decoracion.html">
+      <div>
+        <p class="titulo">Decoración</p>
+        <p class="valor vacio">Sin definir</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" href="souvenirs.html">
+      <div>
+        <p class="titulo">Souvenirs</p>
+        <p class="valor vacio">Sin definir</p>
+      </div>
+      <span class="flecha">›</span>
+    </a>
+
+    <a class="tarjeta" id="verSheetLink" href="#" target="_blank">
+      <div>
+        <p class="titulo">Google Sheet</p>
+        <p class="valor">Ver planilla completa</p>
+      </div>
+      <span class="flecha">↗</span>
+    </a>
+  </div>
+
+</div>
+
+<div class="nav-inferior">
+  <a class="nav-item activo" href="evento.html"><span class="icono">🏠</span><span>Inicio</span></a>
+  <a class="nav-item" href="lugar.html"><span class="icono">📍</span><span>Lugar</span></a>
+  <a class="nav-item" href="invitados.html"><span class="icono">👥</span><span>Invitados</span></a>
+  <a class="nav-item" href="tematica.html"><span class="icono">🎨</span><span>Temática</span></a>
+  <a class="nav-item" href="mas.html"><span class="icono">⋯</span><span>Más</span></a>
+</div>
+
+<script>
+  const eventoActivo = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
+
+  if (!eventoActivo) {
+    window.location.href = 'index.html';
+  } else {
+    document.getElementById('tipoEventoTexto').textContent = eventoActivo.tipoEvento;
+    document.getElementById('nombreEventoTexto').textContent = eventoActivo.nombreEvento;
+
+    const fechaObj = new Date(eventoActivo.fecha + 'T00:00:00');
+    const fechaFormateada = fechaObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const horaTexto = eventoActivo.hora ? ` · ${eventoActivo.hora}` : '';
+    document.getElementById('fechaEventoTexto').textContent = fechaFormateada + horaTexto;
+
+    // Cálculo del contador de días
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const diffMs = fechaObj - hoy;
+    const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    const numeroEl = document.getElementById('numeroContador');
+    const etiquetaEl = document.getElementById('etiquetaContador');
+
+    if (diffDias > 1) {
+      numeroEl.textContent = diffDias;
+      etiquetaEl.textContent = 'días para el evento';
+    } else if (diffDias === 1) {
+      numeroEl.textContent = '1';
+      etiquetaEl.textContent = 'día para el evento';
+    } else if (diffDias === 0) {
+      numeroEl.textContent = '¡Hoy!';
+      etiquetaEl.textContent = 'es el gran día';
+    } else {
+      numeroEl.textContent = '✓';
+      etiquetaEl.textContent = 'evento realizado';
+    }
+
+    if (eventoActivo.sheetUrl) {
+      document.getElementById('verSheetLink').href = eventoActivo.sheetUrl;
+    }
+
+    document.getElementById('cargando').style.display = 'none';
+    document.getElementById('contenido').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
