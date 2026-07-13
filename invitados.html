@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Invitados · Bitácora de festejo</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF9F6;
+    --surface: #FFFFFF;
+    --text: #2B2620;
+    --text-2: #8A8378;
+    --accent: #8C3A46;
+    --accent-bg: #F1E2E3;
+    --border: #E8E3DB;
+    --success: #5B8A6B;
+    --gold: #D9A441;
+    --danger: #B23B3B;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 90px;
+  }
+
+  .contenedor { max-width: 420px; margin: 0 auto; }
+
+  .encabezado-lista {
+    padding: 20px 18px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .encabezado-lista h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .btn-agregar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .totales {
+    padding: 0 18px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .caja-total {
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .caja-total .numero {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    font-family: 'Fraunces', serif;
+  }
+
+  .caja-total .etiqueta {
+    font-size: 11px;
+    color: var(--text-2);
+    margin: 2px 0 0;
+  }
+
+  .total-general { background: var(--accent-bg); }
+  .total-general .numero { color: var(--accent); }
+  .total-confirmados { background: #E7F0E9; }
+  .total-confirmados .numero { color: var(--success); }
+  .total-noconfirmados { background: #F1E9D9; }
+  .total-noconfirmados .numero { color: #9C7A1F; }
+  .total-noasisten { background: #F1E1E1; }
+  .total-noasisten .numero { color: var(--danger); }
+
+  .lista { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; }
+
+  .item-invitado {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .item-invitado .nombre { font-size: 13px; font-weight: 600; margin: 0 0 2px; }
+  .item-invitado .info { font-size: 11px; color: var(--text-2); margin: 0; }
+
+  .etiqueta-estado {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .estado-Invitado { background: var(--bg); color: var(--text-2); border: 1px solid var(--border); }
+  .estado-Confirmado { background: #E7F0E9; color: var(--success); }
+  .estado-No.confirmado, .estado-NoConfirmado { background: #F1E9D9; color: #9C7A1F; }
+  .estado-No.asiste, .estado-NoAsiste { background: #F1E1E1; color: var(--danger); }
+
+  .vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+
+  #cargandoLista { text-align: center; padding: 40px 20px; color: var(--text-2); font-size: 13px; }
+
+  /* ---------- Detalle ---------- */
+  .pantalla-detalle { background: var(--surface); min-height: 100vh; display: none; }
+
+  .barra-superior-detalle {
+    padding: 18px 18px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .volver { font-size: 11px; color: var(--accent); margin: 0 0 4px; cursor: pointer; display: inline-block; }
+
+  .titulo-detalle {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+
+  .menu-opciones { position: relative; }
+
+  .btn-menu { font-size: 18px; color: var(--text-2); background: none; border: none; cursor: pointer; padding: 4px 6px; }
+
+  .desplegable-menu {
+    display: none;
+    position: absolute;
+    top: 26px; right: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 140px;
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .desplegable-menu.abierto { display: block; }
+
+  .opcion-menu {
+    padding: 10px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .opcion-menu.eliminar { color: var(--danger); }
+
+  .cuerpo-detalle { padding: 10px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+  .fila-tipo { display: flex; gap: 8px; }
+
+  .chip-tipo {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-2);
+  }
+
+  .chip-tipo.activo {
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 600;
+    border-color: var(--accent);
+  }
+
+  .campo-titulo { font-size: 11px; color: var(--text-2); margin: 0 0 2px; }
+  .campo-valor { font-size: 13px; color: var(--text); margin: 0; }
+
+  .fila-doble { display: flex; gap: 20px; }
+
+  .fila-contacto { display: flex; align-items: center; justify-content: space-between; }
+
+  .btn-whatsapp {
+    background: #E7F0E9;
+    color: var(--success);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .caja-observaciones {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .caja-observaciones p { font-size: 12px; color: var(--text); margin: 0; line-height: 1.5; }
+
+  .fila-estados-rapidos { display: flex; gap: 6px; margin-top: 4px; }
+
+  .btn-estado-rapido {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
+    cursor: pointer;
+  }
+
+  .btn-estado-rapido.activo-Confirmado { background: #E7F0E9; color: var(--success); border-color: var(--success); }
+  .btn-estado-rapido.activo-NoConfirmado { background: #F1E9D9; color: #9C7A1F; border-color: #9C7A1F; }
+  .btn-estado-rapido.activo-NoAsiste { background: #F1E1E1; color: var(--danger); border-color: var(--danger); }
+  .btn-estado-rapido.activo-Invitado { background: var(--bg); color: var(--text-2); border-color: var(--text-2); }
+
+  .btn-editar-datos {
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-2);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  /* ---------- Formulario ---------- */
+  .pantalla-form { background: var(--surface); min-height: 100vh; display: none; }
+  .cuerpo-form { padding: 6px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+  .campo-form label { font-size: 11px; color: var(--text-2); display: block; margin-bottom: 4px; }
+
+  .campo-form input, .campo-form select, .campo-form textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 12px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .campo-form textarea { resize: vertical; min-height: 60px; }
+
+  .btn-guardar {
+    margin-top: 6px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  #mensajeForm { font-size: 12px; color: var(--danger); text-align: center; display: none; }
+
+  /* ---------- Nav inferior ---------- */
+  .nav-inferior {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .nav-item { font-size: 10px; color: var(--text-2); display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; }
+  .nav-item.activo { color: var(--accent); font-weight: 600; }
+  .nav-item .icono { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ============ VISTA LISTA ============ -->
+<div class="contenedor" id="vistaLista">
+  <div class="encabezado-lista">
+    <h1>Invitados</h1>
+    <button class="btn-agregar" onclick="abrirFormulario(null)">+</button>
+  </div>
+
+  <div class="totales">
+    <div class="caja-total total-general">
+      <p class="numero" id="totalGeneral">0</p>
+      <p class="etiqueta">Total invitados</p>
+    </div>
+    <div class="caja-total total-confirmados">
+      <p class="numero" id="totalConfirmados">0</p>
+      <p class="etiqueta">Confirmados</p>
+    </div>
+    <div class="caja-total total-noconfirmados">
+      <p class="numero" id="totalNoConfirmados">0</p>
+      <p class="etiqueta">No confirmados</p>
+    </div>
+    <div class="caja-total total-noasisten">
+      <p class="numero" id="totalNoAsisten">0</p>
+      <p class="etiqueta">No asisten</p>
+    </div>
+  </div>
+
+  <div id="cargandoLista">Cargando invitados...</div>
+  <div class="lista" id="listaInvitados"></div>
+</div>
+
+<!-- ============ VISTA DETALLE ============ -->
+<div class="pantalla-detalle" id="vistaDetalle">
+  <div class="barra-superior-detalle">
+    <div>
+      <span class="volver" onclick="volverALista()">‹ Volver a Invitados</span>
+      <p class="titulo-detalle" id="detalleNombre"></p>
+    </div>
+    <div class="menu-opciones">
+      <button class="btn-menu" onclick="toggleMenu()">⋮</button>
+      <div class="desplegable-menu" id="menuDesplegable">
+        <div class="opcion-menu eliminar" onclick="confirmarEliminar()">🗑 Eliminar</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cuerpo-detalle">
+    <div class="fila-tipo">
+      <span class="chip-tipo" id="chipPersona">Persona</span>
+      <span class="chip-tipo" id="chipGrupo">Grupo</span>
+    </div>
+
+    <div class="fila-doble">
+      <div>
+        <p class="campo-titulo">Cantidad</p>
+        <p class="campo-valor" id="detalleCantidad">–</p>
+      </div>
+      <div>
+        <p class="campo-titulo">Estado actual</p>
+        <span class="etiqueta-estado" id="detalleEstadoTag">–</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="campo-titulo">Contacto</p>
+      <div class="fila-contacto">
+        <p class="campo-valor" id="detalleTelefono">–</p>
+        <a class="btn-whatsapp" id="detalleWhatsapp" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+
+    <div>
+      <p class="campo-titulo">Observaciones</p>
+      <div class="caja-observaciones">
+        <p id="detalleObservaciones">–</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="campo-titulo">Cambiar estado</p>
+      <div class="fila-estados-rapidos">
+        <button class="btn-estado-rapido" data-estado="Invitado" onclick="marcarEstado('Invitado')">Invitado</button>
+        <button class="btn-estado-rapido" data-estado="Confirmado" onclick="marcarEstado('Confirmado')">Confirmado</button>
+        <button class="btn-estado-rapido" data-estado="No confirmado" onclick="marcarEstado('No confirmado')">No confirmado</button>
+        <button class="btn-estado-rapido" data-estado="No asiste" onclick="marcarEstado('No asiste')">No asiste</button>
+      </div>
+    </div>
+
+    <button class="btn-editar-datos" onclick="abrirFormulario(invitadoActual)">Editar datos</button>
+  </div>
+</div>
+
+<!-- ============ FORMULARIO ============ -->
+<div class="pantalla-form" id="vistaForm">
+  <div class="barra-superior-detalle">
+    <div>
+      <span class="volver" onclick="volverALista()">‹ Volver a Invitados</span>
+      <p class="titulo-detalle" id="tituloForm">Nuevo invitado</p>
+    </div>
+  </div>
+
+  <div class="cuerpo-form">
+    <div class="campo-form">
+      <label>Tipo</label>
+      <select id="formTipo" onchange="actualizarCampoCantidad()">
+        <option value="Persona">Persona</option>
+        <option value="Grupo">Grupo</option>
+      </select>
+    </div>
+    <div class="campo-form">
+      <label>Nombre</label>
+      <input type="text" id="formNombre" placeholder="Ej: Acosta Francisco o Familia Escalada">
+    </div>
+    <div class="campo-form" id="campoCantidad">
+      <label>Cantidad de personas</label>
+      <input type="number" id="formCantidad" min="1" value="1">
+    </div>
+    <div class="campo-form">
+      <label>Teléfono / contacto</label>
+      <input type="text" id="formTelefono" placeholder="Ej: 3804123456">
+    </div>
+    <div class="campo-form">
+      <label>Estado</label>
+      <select id="formEstado">
+        <option value="Invitado">Invitado</option>
+        <option value="Confirmado">Confirmado</option>
+        <option value="No confirmado">No confirmado</option>
+        <option value="No asiste">No asiste</option>
+      </select>
+    </div>
+    <div class="campo-form">
+      <label>Observaciones</label>
+      <textarea id="formObservaciones" placeholder="Ej: alergia al maní, viene en silla de ruedas"></textarea>
+    </div>
+
+    <p id="mensajeForm"></p>
+    <button class="btn-guardar" onclick="guardarFormulario()">Guardar</button>
+  </div>
+</div>
+
+<!-- ============ NAV INFERIOR ============ -->
+<div class="nav-inferior">
+  <a class="nav-item" href="evento.html"><span class="icono">🏠</span><span>Inicio</span></a>
+  <a class="nav-item" href="lugar.html"><span class="icono">📍</span><span>Lugar</span></a>
+  <a class="nav-item activo" href="invitados.html"><span class="icono">👥</span><span>Invitados</span></a>
+  <a class="nav-item" href="tematica.html"><span class="icono">🎨</span><span>Temática</span></a>
+  <a class="nav-item" href="mas.html"><span class="icono">⋯</span><span>Más</span></a>
+</div>
+
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby3HwnUO-ziu-iFujwaZbZR0ntJsPwYhmOGCv8KP19_cQrq_wZIJX4A2evrPXEEw6DJ4w/exec";
+
+  const eventoActivo = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
+  if (!eventoActivo) window.location.href = 'index.html';
+
+  let invitados = [];
+  let invitadoActual = null;
+
+  async function llamarGAS(body) {
+    const respuesta = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
+    const resultado = await respuesta.json();
+    if (!resultado.ok) throw new Error(resultado.error || 'Error desconocido');
+    return resultado;
+  }
+
+  async function cargarInvitados() {
+    try {
+      const resultado = await llamarGAS({ accion: 'listarInvitados', sheetId: eventoActivo.sheetId });
+      invitados = resultado.invitados;
+      pintarTotales();
+      pintarLista();
+    } catch (error) {
+      document.getElementById('cargandoLista').textContent = 'Error al cargar: ' + error.message;
+    }
+  }
+
+  function pintarTotales() {
+    let total = 0, confirmados = 0, noConfirmados = 0, noAsisten = 0;
+    invitados.forEach(function (inv) {
+      const cant = Number(inv.CANTIDAD) || 1;
+      total += cant;
+      if (inv.ESTADO === 'Confirmado') confirmados += cant;
+      else if (inv.ESTADO === 'No confirmado') noConfirmados += cant;
+      else if (inv.ESTADO === 'No asiste') noAsisten += cant;
+    });
+    document.getElementById('totalGeneral').textContent = total;
+    document.getElementById('totalConfirmados').textContent = confirmados;
+    document.getElementById('totalNoConfirmados').textContent = noConfirmados;
+    document.getElementById('totalNoAsisten').textContent = noAsisten;
+  }
+
+  function claseEstado(estado) {
+    if (estado === 'Confirmado') return 'estado-Confirmado';
+    if (estado === 'No confirmado') return 'estado-NoConfirmado';
+    if (estado === 'No asiste') return 'estado-NoAsiste';
+    return 'estado-Invitado';
+  }
+
+  function pintarLista() {
+    document.getElementById('cargandoLista').style.display = 'none';
+    const contenedor = document.getElementById('listaInvitados');
+
+    if (invitados.length === 0) {
+      contenedor.innerHTML = '<div class="vacio">Todavía no cargaste ningún invitado.<br>Tocá el botón + para agregar el primero.</div>';
+      return;
+    }
+
+    contenedor.innerHTML = invitados.map(function (inv, i) {
+      return `
+        <div class="item-invitado" onclick="abrirDetalle(${i})">
+          <div>
+            <p class="nombre">${escapeHtml(inv.NOMBRE)}</p>
+            <p class="info">${inv.TIPO} · ${inv.CANTIDAD || 1}</p>
+          </div>
+          <span class="etiqueta-estado ${claseEstado(inv.ESTADO)}">${inv.ESTADO || 'Invitado'}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function escapeHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto || '';
+    return div.innerHTML;
+  }
+
+  function abrirDetalle(indice) {
+    invitadoActual = invitados[indice];
+    document.getElementById('detalleNombre').textContent = invitadoActual.NOMBRE;
+    document.getElementById('detalleCantidad').textContent = (invitadoActual.CANTIDAD || 1) + (invitadoActual.TIPO === 'Grupo' ? ' personas' : ' persona');
+    document.getElementById('detalleTelefono').textContent = invitadoActual.TELEFONO || 'Sin cargar';
+    document.getElementById('detalleObservaciones').textContent = invitadoActual.OBSERVACIONES || 'Sin observaciones';
+
+    const tagEstado = document.getElementById('detalleEstadoTag');
+    tagEstado.textContent = invitadoActual.ESTADO || 'Invitado';
+    tagEstado.className = 'etiqueta-estado ' + claseEstado(invitadoActual.ESTADO);
+
+    document.getElementById('chipPersona').classList.toggle('activo', invitadoActual.TIPO === 'Persona');
+    document.getElementById('chipGrupo').classList.toggle('activo', invitadoActual.TIPO === 'Grupo');
+
+    const telLimpio = (invitadoActual.TELEFONO || '').replace(/\D/g, '');
+    document.getElementById('detalleWhatsapp').href = telLimpio ? `https://wa.me/54${telLimpio}` : '#';
+
+    document.querySelectorAll('.btn-estado-rapido').forEach(function (btn) {
+      const esActivo = btn.dataset.estado === (invitadoActual.ESTADO || 'Invitado');
+      btn.className = 'btn-estado-rapido' + (esActivo ? ' activo-' + btn.dataset.estado.replace(' ', '') : '');
+    });
+
+    document.getElementById('vistaLista').style.display = 'none';
+    document.getElementById('vistaDetalle').style.display = 'block';
+    document.getElementById('vistaForm').style.display = 'none';
+    cerrarMenu();
+  }
+
+  function volverALista() {
+    document.getElementById('vistaLista').style.display = 'block';
+    document.getElementById('vistaDetalle').style.display = 'none';
+    document.getElementById('vistaForm').style.display = 'none';
+    cargarInvitados();
+  }
+
+  function toggleMenu() {
+    document.getElementById('menuDesplegable').classList.toggle('abierto');
+  }
+
+  function cerrarMenu() {
+    document.getElementById('menuDesplegable').classList.remove('abierto');
+  }
+
+  async function marcarEstado(estado) {
+    invitadoActual.ESTADO = estado;
+    try {
+      await llamarGAS({ accion: 'guardarInvitado', sheetId: eventoActivo.sheetId, invitado: invitadoActual });
+      abrirDetalle(invitados.findIndex(function (inv) { return inv.ID_INVITADO === invitadoActual.ID_INVITADO; }));
+    } catch (error) {
+      alert('No se pudo actualizar: ' + error.message);
+    }
+  }
+
+  async function confirmarEliminar() {
+    cerrarMenu();
+    if (!confirm(`¿Eliminar "${invitadoActual.NOMBRE}" de la lista de invitados?`)) return;
+    try {
+      await llamarGAS({ accion: 'eliminarInvitado', sheetId: eventoActivo.sheetId, idInvitado: invitadoActual.ID_INVITADO });
+      volverALista();
+    } catch (error) {
+      alert('No se pudo eliminar: ' + error.message);
+    }
+  }
+
+  function actualizarCampoCantidad() {
+    const tipo = document.getElementById('formTipo').value;
+    const campoCantidad = document.getElementById('campoCantidad');
+    if (tipo === 'Persona') {
+      document.getElementById('formCantidad').value = 1;
+      campoCantidad.style.display = 'none';
+    } else {
+      campoCantidad.style.display = 'block';
+    }
+  }
+
+  function abrirFormulario(invitado) {
+    document.getElementById('vistaLista').style.display = 'none';
+    document.getElementById('vistaDetalle').style.display = 'none';
+    document.getElementById('vistaForm').style.display = 'block';
+    document.getElementById('mensajeForm').style.display = 'none';
+
+    if (invitado) {
+      document.getElementById('tituloForm').textContent = 'Editar invitado';
+      document.getElementById('formTipo').value = invitado.TIPO || 'Persona';
+      document.getElementById('formNombre').value = invitado.NOMBRE || '';
+      document.getElementById('formCantidad').value = invitado.CANTIDAD || 1;
+      document.getElementById('formTelefono').value = invitado.TELEFONO || '';
+      document.getElementById('formEstado').value = invitado.ESTADO || 'Invitado';
+      document.getElementById('formObservaciones').value = invitado.OBSERVACIONES || '';
+      document.getElementById('formNombre').dataset.idInvitado = invitado.ID_INVITADO;
+    } else {
+      document.getElementById('tituloForm').textContent = 'Nuevo invitado';
+      document.getElementById('formTipo').value = 'Persona';
+      document.getElementById('formNombre').value = '';
+      document.getElementById('formCantidad').value = 1;
+      document.getElementById('formTelefono').value = '';
+      document.getElementById('formEstado').value = 'Invitado';
+      document.getElementById('formObservaciones').value = '';
+      delete document.getElementById('formNombre').dataset.idInvitado;
+    }
+    actualizarCampoCantidad();
+  }
+
+  async function guardarFormulario() {
+    const nombre = document.getElementById('formNombre').value.trim();
+    const mensajeEl = document.getElementById('mensajeForm');
+
+    if (!nombre) {
+      mensajeEl.textContent = 'Falta el nombre del invitado o grupo.';
+      mensajeEl.style.display = 'block';
+      return;
+    }
+
+    const invitado = {
+      ID_INVITADO: document.getElementById('formNombre').dataset.idInvitado || '',
+      TIPO: document.getElementById('formTipo').value,
+      NOMBRE: nombre,
+      CANTIDAD: Number(document.getElementById('formCantidad').value) || 1,
+      TELEFONO: document.getElementById('formTelefono').value.trim(),
+      ESTADO: document.getElementById('formEstado').value,
+      OBSERVACIONES: document.getElementById('formObservaciones').value.trim()
+    };
+
+    try {
+      await llamarGAS({ accion: 'guardarInvitado', sheetId: eventoActivo.sheetId, invitado: invitado });
+      volverALista();
+    } catch (error) {
+      mensajeEl.textContent = 'No se pudo guardar: ' + error.message;
+      mensajeEl.style.display = 'block';
+    }
+  }
+
+  cargarInvitados();
+</script>
+
+</body>
+</html>
