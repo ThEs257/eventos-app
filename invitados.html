@@ -550,7 +550,7 @@
     document.getElementById('chipGrupo').classList.toggle('activo', invitadoActual.TIPO === 'Grupo');
 
     const telLimpio = (invitadoActual.TELEFONO || '').replace(/\D/g, '');
-    document.getElementById('detalleWhatsapp').href = telLimpio ? `https://wa.me/54${telLimpio}` : '#';
+    document.getElementById('detalleWhatsapp').href = telLimpio ? `https://wa.me/549${telLimpio}` : '#';
 
     document.querySelectorAll('.btn-estado-rapido').forEach(function (btn) {
       const esActivo = btn.dataset.estado === (invitadoActual.ESTADO || 'Invitado');
