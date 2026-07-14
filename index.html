@@ -209,12 +209,114 @@
   @keyframes girar {
     to { transform: rotate(360deg); }
   }
+
+  /* ---------- Lista de eventos ---------- */
+  .pantalla-lista-eventos {
+    width: 100%;
+    max-width: 400px;
+    display: none;
+  }
+
+  .encabezado-eventos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 4px 18px;
+  }
+
+  .encabezado-eventos h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .btn-agregar-evento {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .tarjeta-evento {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tarjeta-evento .tipo {
+    font-size: 11px;
+    color: var(--text-2);
+    margin: 0 0 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .tarjeta-evento .nombre {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 3px;
+  }
+
+  .tarjeta-evento .fecha {
+    font-size: 12px;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .tarjeta-evento .flecha {
+    color: var(--text-2);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  #cargandoEventos {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+
+  .volver-a-lista {
+    font-size: 11px;
+    color: var(--accent);
+    margin: 0 0 14px;
+    cursor: pointer;
+    display: none;
+  }
 </style>
 </head>
 <body>
 
-<div class="card">
+<!-- ============ LISTA DE EVENTOS ============ -->
+<div class="pantalla-lista-eventos" id="vistaListaEventos">
+  <div class="encabezado-eventos">
+    <h1>Tus eventos</h1>
+    <button class="btn-agregar-evento" onclick="mostrarFormularioCrear()">+</button>
+  </div>
+  <div id="cargandoEventos">Cargando eventos...</div>
+  <div id="listaEventos"></div>
+</div>
+
+<!-- ============ FORMULARIO CREAR EVENTO ============ -->
+<div class="card" id="vistaCrearEvento" style="display:none;">
   <div class="header">
+    <span class="volver-a-lista" id="volverALista" onclick="mostrarListaEventos()">‹ Volver a mis eventos</span>
     <h1>¿Qué vamos a planear?</h1>
     <p>Elegí el tipo de evento para empezar.</p>
   </div>
@@ -392,6 +494,71 @@
   // Inicializa la fecha mínima en hoy y sugiere el nombre por defecto
   document.getElementById('fechaEvento').min = new Date().toISOString().split('T')[0];
   actualizarNombreSugerido();
+
+  // ==================== LISTA DE EVENTOS EXISTENTES ====================
+  function escapeHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto || '';
+    return div.innerHTML;
+  }
+
+  function mostrarListaEventos() {
+    document.getElementById('vistaListaEventos').style.display = 'block';
+    document.getElementById('vistaCrearEvento').style.display = 'none';
+  }
+
+  function mostrarFormularioCrear(esPrimerEvento) {
+    document.getElementById('vistaListaEventos').style.display = 'none';
+    document.getElementById('vistaCrearEvento').style.display = 'block';
+    document.getElementById('volverALista').style.display = esPrimerEvento ? 'none' : 'block';
+  }
+
+  function pintarListaEventos(eventos) {
+    document.getElementById('cargandoEventos').style.display = 'none';
+    const contenedor = document.getElementById('listaEventos');
+
+    contenedor.innerHTML = eventos.map(function (ev) {
+      const fechaObj = new Date(ev.fecha + 'T00:00:00');
+      const fechaFormateada = fechaObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+      return `
+        <div class="tarjeta-evento" onclick='seleccionarEvento(${JSON.stringify(ev)})'>
+          <div>
+            <p class="tipo">${escapeHtml(ev.tipoEvento)}</p>
+            <p class="nombre">${escapeHtml(ev.nombreEvento)}</p>
+            <p class="fecha">${fechaFormateada}</p>
+          </div>
+          <span class="flecha">›</span>
+        </div>`;
+    }).join('');
+  }
+
+  function seleccionarEvento(ev) {
+    localStorage.setItem('eventoActivo', JSON.stringify(ev));
+    window.location.href = 'evento.html';
+  }
+
+  async function cargarEventosExistentes() {
+    try {
+      const respuesta = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ accion: 'listarEventos' })
+      });
+      const resultado = await respuesta.json();
+      if (!resultado.ok) throw new Error(resultado.error);
+
+      if (resultado.eventos.length === 0) {
+        mostrarFormularioCrear(true);
+      } else {
+        mostrarListaEventos();
+        pintarListaEventos(resultado.eventos);
+      }
+    } catch (error) {
+      // si falla la carga, no bloqueamos al usuario: lo mandamos directo a crear evento
+      mostrarFormularioCrear(true);
+    }
+  }
+
+  cargarEventosExistentes();
 </script>
 
 </body>
