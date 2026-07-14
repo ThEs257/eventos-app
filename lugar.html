@@ -173,32 +173,19 @@
 
   .mapa-mini {
     margin: 0 18px 14px;
-    height: 110px;
+    height: 130px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #E4DED0 25%, #DCD5C4 25%, #DCD5C4 50%, #E4DED0 50%, #E4DED0 75%, #DCD5C4 75%);
-    background-size: 16px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
     position: relative;
-    cursor: pointer;
-    text-decoration: none;
+    background: var(--bg);
   }
 
-  .mapa-mini .pin {
-    background: var(--accent);
-    color: #fff;
-    width: 26px;
-    height: 26px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
+  .mapa-mini iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
   }
-
-  .mapa-mini .pin span { transform: rotate(45deg); }
 
   .mapa-mini .ver-maps {
     position: absolute;
@@ -209,6 +196,17 @@
     background: #fff;
     padding: 2px 6px;
     border-radius: 6px;
+    text-decoration: none;
+    z-index: 2;
+  }
+
+  .mapa-mini .cargando-mapa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 12px;
+    color: var(--text-2);
   }
 
   .sin-ubicacion {
@@ -369,10 +367,10 @@
     </div>
   </div>
 
-  <a class="mapa-mini" id="mapaMini" target="_blank">
-    <span class="pin"><span>📍</span></span>
-    <span class="ver-maps">Ver en Maps ↗</span>
-  </a>
+  <div class="mapa-mini" id="mapaMini">
+    <div class="cargando-mapa" id="cargandoMapa">Cargando mapa...</div>
+    <a class="ver-maps" id="verMapaLink" target="_blank" style="display:none;">Ver en Maps ↗</a>
+  </div>
   <div class="sin-ubicacion" id="sinUbicacion" style="display:none;">Sin ubicación cargada</div>
 
   <div class="cuerpo-detalle">
@@ -536,7 +534,7 @@
     return div.innerHTML;
   }
 
-  function abrirDetalle(indice) {
+  async function abrirDetalle(indice) {
     lugarActual = lugares[indice];
     document.getElementById('detalleNombre').textContent = lugarActual.NOMBRE;
     document.getElementById('detalleDireccion').textContent = lugarActual.DIRECCION || 'Sin cargar';
@@ -550,10 +548,37 @@
 
     const mapaEl = document.getElementById('mapaMini');
     const sinUbicacionEl = document.getElementById('sinUbicacion');
+    const cargandoMapaEl = document.getElementById('cargandoMapa');
+    const verMapaLinkEl = document.getElementById('verMapaLink');
+
+    // limpia cualquier mapa anterior
+    const iframeViejo = mapaEl.querySelector('iframe');
+    if (iframeViejo) iframeViejo.remove();
+    cargandoMapaEl.style.display = 'flex';
+    verMapaLinkEl.style.display = 'none';
+
     if (lugarActual.UBICACION_LINK) {
-      mapaEl.style.display = 'flex';
-      mapaEl.href = lugarActual.UBICACION_LINK;
+      mapaEl.style.display = 'block';
       sinUbicacionEl.style.display = 'none';
+      verMapaLinkEl.href = lugarActual.UBICACION_LINK;
+
+      try {
+        const res = await llamarGAS({ accion: 'resolverCoordenadas', sheetId: eventoActivo.sheetId, link: lugarActual.UBICACION_LINK });
+        if (res.lat && res.lng) {
+          const delta = 0.006;
+          const bbox = `${res.lng - delta},${res.lat - delta},${res.lng + delta},${res.lat + delta}`;
+          const iframe = document.createElement('iframe');
+          iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${res.lat},${res.lng}`;
+          iframe.loading = 'lazy';
+          mapaEl.insertBefore(iframe, cargandoMapaEl);
+          cargandoMapaEl.style.display = 'none';
+        } else {
+          cargandoMapaEl.textContent = 'No se pudo ubicar el mapa con ese link';
+        }
+      } catch (error) {
+        cargandoMapaEl.textContent = 'No se pudo cargar el mapa';
+      }
+      verMapaLinkEl.style.display = 'block';
     } else {
       mapaEl.style.display = 'none';
       sinUbicacionEl.style.display = 'block';
