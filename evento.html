@@ -261,6 +261,8 @@
 </div>
 
 <script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby3HwnUO-ziu-iFujwaZbZR0ntJsPwYhmOGCv8KP19_cQrq_wZIJX4A2evrPXEEw6DJ4w/exec";
+
   const eventoActivo = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
 
   if (!eventoActivo) {
@@ -306,8 +308,6 @@
 
     cargarResumen();
   }
-
-  const GAS_URL = "https://script.google.com/macros/s/AKfycby3HwnUO-ziu-iFujwaZbZR0ntJsPwYhmOGCv8KP19_cQrq_wZIJX4A2evrPXEEw6DJ4w/exec";
 
   function formatoMoneda(valor) {
     return '$' + (Number(valor) || 0).toLocaleString('es-AR');
@@ -386,6 +386,7 @@
       ['resumenLugar','resumenInvitados','resumenTematica','resumenComida','resumenBebida','resumenDecoracion','resumenSouvenirs'].forEach(function (id) {
         document.getElementById(id).textContent = 'Error al cargar';
       });
+      alert('Detalle del error (para diagnosticar): ' + error.message);
     }
   }
 </script>
