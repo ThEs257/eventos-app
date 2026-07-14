@@ -185,7 +185,7 @@
     <a class="tarjeta" href="lugar.html">
       <div>
         <p class="titulo">Lugar</p>
-        <p class="valor vacio">Sin definir</p>
+        <p class="valor vacio" id="resumenLugar">Cargando...</p>
       </div>
       <span class="flecha">›</span>
     </a>
@@ -193,15 +193,18 @@
     <a class="tarjeta" href="invitados.html">
       <div>
         <p class="titulo">Invitados</p>
-        <p class="valor vacio">Sin invitados cargados</p>
+        <p class="valor vacio" id="resumenInvitados">Cargando...</p>
       </div>
       <span class="flecha">›</span>
     </a>
 
     <a class="tarjeta" href="tematica.html">
-      <div>
-        <p class="titulo">Temática</p>
-        <p class="valor vacio">Sin definir</p>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div>
+          <p class="titulo">Temática</p>
+          <p class="valor vacio" id="resumenTematica">Cargando...</p>
+        </div>
+        <div id="swatchesTematica" style="display:flex; gap:3px;"></div>
       </div>
       <span class="flecha">›</span>
     </a>
@@ -209,7 +212,7 @@
     <a class="tarjeta" href="comida.html">
       <div>
         <p class="titulo">Comida</p>
-        <p class="valor vacio">Sin definir</p>
+        <p class="valor vacio" id="resumenComida">Cargando...</p>
       </div>
       <span class="flecha">›</span>
     </a>
@@ -217,7 +220,7 @@
     <a class="tarjeta" href="bebida.html">
       <div>
         <p class="titulo">Bebida</p>
-        <p class="valor vacio">Sin definir</p>
+        <p class="valor vacio" id="resumenBebida">Cargando...</p>
       </div>
       <span class="flecha">›</span>
     </a>
@@ -225,7 +228,7 @@
     <a class="tarjeta" href="decoracion.html">
       <div>
         <p class="titulo">Decoración</p>
-        <p class="valor vacio">Sin definir</p>
+        <p class="valor vacio" id="resumenDecoracion">Cargando...</p>
       </div>
       <span class="flecha">›</span>
     </a>
@@ -233,7 +236,7 @@
     <a class="tarjeta" href="souvenirs.html">
       <div>
         <p class="titulo">Souvenirs</p>
-        <p class="valor vacio">Sin definir</p>
+        <p class="valor vacio" id="resumenSouvenirs">Cargando...</p>
       </div>
       <span class="flecha">›</span>
     </a>
@@ -300,6 +303,90 @@
 
     document.getElementById('cargando').style.display = 'none';
     document.getElementById('contenido').style.display = 'block';
+
+    cargarResumen();
+  }
+
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby3HwnUO-ziu-iFujwaZbZR0ntJsPwYhmOGCv8KP19_cQrq_wZIJX4A2evrPXEEw6DJ4w/exec";
+
+  function formatoMoneda(valor) {
+    return '$' + (Number(valor) || 0).toLocaleString('es-AR');
+  }
+
+  function actualizarTarjeta(id, texto, hayDato) {
+    const el = document.getElementById(id);
+    el.textContent = texto;
+    el.classList.toggle('vacio', !hayDato);
+  }
+
+  async function cargarResumen() {
+    try {
+      const respuesta = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ accion: 'obtenerResumenEvento', sheetId: eventoActivo.sheetId })
+      });
+      const resultado = await respuesta.json();
+      if (!resultado.ok) throw new Error(resultado.error);
+
+      const r = resultado.resumen;
+
+      // Lugar
+      if (r.lugar) {
+        actualizarTarjeta('resumenLugar', r.lugar.nombre, true);
+      } else {
+        actualizarTarjeta('resumenLugar', 'Sin definir', false);
+      }
+
+      // Invitados
+      if (r.invitados.hayInvitados) {
+        actualizarTarjeta('resumenInvitados', `${r.invitados.confirmados} confirmados / ${r.invitados.total} invitados`, true);
+      } else {
+        actualizarTarjeta('resumenInvitados', 'Sin invitados cargados', false);
+      }
+
+      // Temática
+      if (r.tematica.colores.length > 0) {
+        actualizarTarjeta('resumenTematica', `${r.tematica.colores.length} colores elegidos`, true);
+        document.getElementById('swatchesTematica').innerHTML = r.tematica.colores.slice(0, 4).map(function (hex) {
+          return `<span style="width:12px; height:12px; border-radius:50%; background:${hex}; display:inline-block;"></span>`;
+        }).join('');
+      } else {
+        actualizarTarjeta('resumenTematica', 'Sin definir', false);
+      }
+
+      // Comida
+      if (r.comida.hayItems) {
+        actualizarTarjeta('resumenComida', formatoMoneda(r.comida.totalSeleccionado) + ' seleccionado', true);
+      } else {
+        actualizarTarjeta('resumenComida', 'Sin definir', false);
+      }
+
+      // Bebida
+      if (r.bebida.hayItems) {
+        actualizarTarjeta('resumenBebida', formatoMoneda(r.bebida.totalGastado) + ' gastado', true);
+      } else {
+        actualizarTarjeta('resumenBebida', 'Sin definir', false);
+      }
+
+      // Decoración
+      if (r.decoracion.hayItems) {
+        actualizarTarjeta('resumenDecoracion', formatoMoneda(r.decoracion.totalConfirmado) + ' confirmado', true);
+      } else {
+        actualizarTarjeta('resumenDecoracion', 'Sin definir', false);
+      }
+
+      // Souvenirs
+      if (r.souvenirs.hayItems) {
+        actualizarTarjeta('resumenSouvenirs', formatoMoneda(r.souvenirs.totalSeleccionado) + ' seleccionado', true);
+      } else {
+        actualizarTarjeta('resumenSouvenirs', 'Sin definir', false);
+      }
+
+    } catch (error) {
+      ['resumenLugar','resumenInvitados','resumenTematica','resumenComida','resumenBebida','resumenDecoracion','resumenSouvenirs'].forEach(function (id) {
+        document.getElementById(id).textContent = 'Error al cargar';
+      });
+    }
   }
 </script>
 
