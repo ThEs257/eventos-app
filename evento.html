@@ -265,6 +265,12 @@
 
   const eventoActivo = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
 
+  // aplica el color personalizado guardado, si existe
+  if (eventoActivo) {
+    const colorGuardado = localStorage.getItem('colorTematica_' + eventoActivo.sheetId);
+    if (colorGuardado) document.documentElement.style.setProperty('--accent', colorGuardado);
+  }
+
   if (!eventoActivo) {
     window.location.href = 'index.html';
   } else {
@@ -346,8 +352,9 @@
 
       // Temática
       if (r.tematica.colores.length > 0) {
-        actualizarTarjeta('resumenTematica', `${r.tematica.colores.length} colores elegidos`, true);
-        document.getElementById('swatchesTematica').innerHTML = r.tematica.colores.slice(0, 4).map(function (hex) {
+        const nombre = r.tematica.nombre ? `"${r.tematica.nombre}"` : 'Sin nombre';
+        actualizarTarjeta('resumenTematica', nombre, true);
+        document.getElementById('swatchesTematica').innerHTML = r.tematica.colores.slice(0, 3).map(function (hex) {
           return `<span style="width:12px; height:12px; border-radius:50%; background:${hex}; display:inline-block;"></span>`;
         }).join('');
       } else {

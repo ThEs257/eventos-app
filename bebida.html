@@ -264,6 +264,12 @@
   const eventoActivo = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
   if (!eventoActivo) window.location.href = 'index.html';
 
+  // aplica el color personalizado guardado, si existe
+  if (eventoActivo) {
+    const colorGuardado = localStorage.getItem('colorTematica_' + eventoActivo.sheetId);
+    if (colorGuardado) document.documentElement.style.setProperty('--accent', colorGuardado);
+  }
+
   let bebidas = [];
   let bebidaActual = null;
   let categoriaFormActual = 'Alcohólica';

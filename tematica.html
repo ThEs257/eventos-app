@@ -87,6 +87,37 @@
 
   .hint { font-size: 10.5px; color: var(--text-2); margin: 6px 0 0; }
 
+  .swatch-wrap { position: relative; width: 38px; height: 38px; }
+
+  .btn-estrella {
+    position: absolute;
+    top: -5px; right: -5px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid var(--border);
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-2);
+    z-index: 2;
+  }
+
+  .btn-estrella.activa { background: var(--gold, #D9A441); color: #fff; border-color: var(--gold, #D9A441); }
+
+  .btn-aplicar-paleta {
+    margin-top: 12px;
+    width: 100%;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   .fila-notas-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 
   .btn-agregar {
@@ -230,8 +261,15 @@
   <div class="encabezado-lista"><h1>Temática</h1></div>
 
   <div class="seccion">
+    <p class="seccion-titulo">Nombre de la temática</p>
+    <input type="text" class="input-inspiracion" id="inputNombreTematica" placeholder="Ej: Vino y Dorado" onblur="guardarNombreTematicaCampo()">
+  </div>
+
+  <div class="seccion">
     <p class="seccion-titulo">Paleta de colores</p>
     <div class="fila-paleta" id="filaPaleta"></div>
+    <button class="btn-aplicar-paleta" onclick="aplicarPaletaALaApp()">Aplicar paleta a la app</button>
+    <p class="hint" id="hintAplicado"></p>
   </div>
 
   <div class="seccion">
@@ -318,6 +356,14 @@
   const eventoActivo = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
   if (!eventoActivo) window.location.href = 'index.html';
 
+  // aplica el color personalizado guardado, si existe, apenas carga la página
+  (function aplicarColorGuardado() {
+    const colorGuardado = localStorage.getItem('colorTematica_' + (eventoActivo && eventoActivo.sheetId));
+    if (colorGuardado) {
+      document.documentElement.style.setProperty('--accent', colorGuardado);
+    }
+  })();
+
   let colores = [];
   let notas = [];
   let notaActual = null;
@@ -356,13 +402,73 @@
   function pintarPaleta() {
     const contenedor = document.getElementById('filaPaleta');
     let html = colores.map(function (c) {
-      return `<button class="swatch" style="background:${c.HEX}" onclick="confirmarEliminarColor('${c.ID_COLOR}')"></button>`;
+      const esPrincipal = c.PRINCIPAL === 'SI';
+      return `
+        <div class="swatch-wrap">
+          <button class="swatch" style="background:${c.HEX}" onclick="confirmarEliminarColor('${c.ID_COLOR}')"></button>
+          <button class="btn-estrella ${esPrincipal ? 'activa' : ''}" onclick="event.stopPropagation(); marcarPrincipal('${c.ID_COLOR}')" title="Marcar como principal">★</button>
+        </div>`;
     }).join('');
     html += `
       <button class="btn-agregar-color" onclick="document.getElementById('inputColorOculto').click()">+</button>
       <input type="color" id="inputColorOculto" onchange="agregarColor(event)">
     `;
     contenedor.innerHTML = html;
+  }
+
+  async function marcarPrincipal(idColor) {
+    try {
+      await llamarGAS({ accion: 'marcarColorPrincipal', sheetId: eventoActivo.sheetId, idColor: idColor });
+      colores = colores.map(function (c) { return { ...c, PRINCIPAL: c.ID_COLOR === idColor ? 'SI' : '' }; });
+      pintarPaleta();
+    } catch (error) {
+      alert('No se pudo marcar como principal: ' + error.message);
+    }
+  }
+
+  function colorPrincipalOPrimero() {
+    if (colores.length === 0) return null;
+    const principal = colores.find(function (c) { return c.PRINCIPAL === 'SI'; });
+    return (principal || colores[0]).HEX;
+  }
+
+  function mezclarConBlanco(hex, porcentaje) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    let r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+    r = Math.round(r + (255 - r) * porcentaje);
+    g = Math.round(g + (255 - g) * porcentaje);
+    b = Math.round(b + (255 - b) * porcentaje);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  function aplicarPaletaALaApp() {
+    const color = colorPrincipalOPrimero();
+    const hintEl = document.getElementById('hintAplicado');
+    if (!color) {
+      hintEl.textContent = 'Agregá al menos un color a la paleta primero.';
+      return;
+    }
+    localStorage.setItem('colorTematica_' + eventoActivo.sheetId, color);
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--accent-bg', mezclarConBlanco(color, 0.85));
+    hintEl.textContent = '¡Listo! Ese color ya es el nuevo acento de toda la app.';
+  }
+
+  // ---------- Nombre de la temática ----------
+  async function cargarNombreTematica() {
+    try {
+      const res = await llamarGAS({ accion: 'obtenerNombreTematica', sheetId: eventoActivo.sheetId });
+      document.getElementById('inputNombreTematica').value = res.nombreTematica || '';
+    } catch (error) { /* si falla, deja el campo vacío sin bloquear el resto */ }
+  }
+
+  async function guardarNombreTematicaCampo() {
+    const nombre = document.getElementById('inputNombreTematica').value.trim();
+    try {
+      await llamarGAS({ accion: 'guardarNombreTematica', sheetId: eventoActivo.sheetId, nombreTematica: nombre });
+    } catch (error) {
+      alert('No se pudo guardar el nombre: ' + error.message);
+    }
   }
 
   async function agregarColor(evento) {
@@ -548,6 +654,7 @@
   }
 
   cargarTodo();
+  cargarNombreTematica();
 </script>
 
 </body>
