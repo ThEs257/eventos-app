@@ -97,6 +97,52 @@
   .nav-item { font-size: 10px; color: var(--text-2); display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; }
   .nav-item.activo { color: var(--accent); font-weight: 600; }
   .nav-item .icono { font-size: 16px; }
+
+  /* ---------- Menú "Más" ---------- */
+  .overlay-mas {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(43,38,32,0.45);
+    z-index: 50;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .overlay-mas.abierto { display: flex; }
+  .hoja-mas {
+    background: var(--surface);
+    width: 100%;
+    max-width: 420px;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .manija-mas {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 0 auto 14px;
+  }
+  .opcion-mas {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .opcion-mas .emoji-mas { font-size: 18px; }
+  .btn-nav-mas {
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -261,7 +307,7 @@
   <a class="nav-item" href="lugar.html"><span class="icono">📍</span><span>Lugar</span></a>
   <a class="nav-item" href="invitados.html"><span class="icono">👥</span><span>Invitados</span></a>
   <a class="nav-item" href="tematica.html"><span class="icono">🎨</span><span>Temática</span></a>
-  <a class="nav-item" href="mas.html"><span class="icono">⋯</span><span>Más</span></a>
+  <button class="nav-item btn-nav-mas activo" onclick="abrirMenuMas()"><span class="icono">⋯</span><span>Más</span></button>
 </div>
 
 <script>
@@ -608,6 +654,33 @@
   seleccionarTipo('Comida específica');
   seleccionarElaboracion('Propia');
   cargarComida();
+</script>
+
+
+<!-- ============ MENÚ "MÁS" ============ -->
+<div class="overlay-mas" id="overlayMas" onclick="cerrarMenuMasClick(event)">
+  <div class="hoja-mas">
+    <div class="manija-mas"></div>
+    <a class="opcion-mas" href="comida.html"><span class="emoji-mas">🍽️</span><span>Comida</span></a>
+    <a class="opcion-mas" href="bebida.html"><span class="emoji-mas">🥤</span><span>Bebida</span></a>
+    <a class="opcion-mas" href="decoracion.html"><span class="emoji-mas">🎀</span><span>Decoración</span></a>
+    <a class="opcion-mas" href="souvenirs.html"><span class="emoji-mas">🎁</span><span>Souvenirs</span></a>
+    <a class="opcion-mas" id="linkSheetMas" target="_blank"><span class="emoji-mas">📄</span><span>Google Sheet</span></a>
+  </div>
+</div>
+
+<script>
+  function abrirMenuMas() {
+    document.getElementById('overlayMas').classList.add('abierto');
+    const link = document.getElementById('linkSheetMas');
+    const ev = JSON.parse(localStorage.getItem('eventoActivo') || 'null');
+    if (ev && ev.sheetUrl) link.href = ev.sheetUrl;
+  }
+  function cerrarMenuMasClick(evento) {
+    if (evento.target.id === 'overlayMas') {
+      document.getElementById('overlayMas').classList.remove('abierto');
+    }
+  }
 </script>
 
 </body>
